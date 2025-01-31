@@ -1,4 +1,4 @@
-﻿<html>
+<html>
 <head>
     <title>Рекламная лотерея 🎰</title>
     <meta charset="UTF-8">
@@ -9,6 +9,7 @@
             font-family: Arial, sans-serif;
             padding: 20px;
             background: #f0f2f5;
+            margin: 0;
         }
         
         .container {
@@ -21,12 +22,17 @@
             margin-bottom: 30px;
         }
         
-        .balance-card {
+        .balance-card, .referral-card {
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+        }
+        
+        .referral-card {
+            background: linear-gradient(90deg, #ff6b6b, #ff9f43);
+            color: white;
         }
         
         .button {
@@ -46,32 +52,18 @@
             transform: scale(0.98);
         }
         
-        .lottery-info {
-            margin-top: 30px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-        }
-        
-        .timer {
-            color: #0088cc;
-            font-weight: bold;
-        }
-
-  // Добавлены новые стили для рефералов
-
-        .referral-card {
-            background: linear-gradient(90deg, #ff6b6b, #ff9f43);
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-        }
         .referral-code {
             background: rgba(255,255,255,0.2);
             padding: 8px;
             border-radius: 8px;
             cursor: pointer;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .timer {
+            color: #0088cc;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -82,58 +74,90 @@
             <p>Смотри рекламу ➡️ получай билеты ➡️ выигрывай деньги!</p>
         </div>
         
+        <div class="referral-card">
+            <h3>👥 Пригласи друга (+5 билетов!)</h3>
+            <p>Ваша ссылка: 
+                <span class="referral-code" onclick="copyReferralLink()" id="referralLink">Загрузка...</span>
+            </p>
+            <p>Приглашено: <span id="referralCount">0</span> друзей</p>
+        </div>
+
         <div class="balance-card">
-            <h3>Твои билеты: <span id="tickets">0</span></h3>
+            <h3>🎫 Ваши билеты: <span id="tickets">0</span></h3>
             <p>Следующий розыгрыш через: <span class="timer" id="timer">00:00:00</span></p>
         </div>
         
         <button class="button" id="watchAd">📺 Смотреть рекламу (+1 билет)</button>
         
-        <div class="lottery-info">
-            <h2>🏆 Текущий джекпот: <span id="jackpot">100</span> RUB</h2>
+        <div class="balance-card">
+            <h2>🏆 Джекпот: <span id="jackpot">100</span> RUB</h2>
             <p>Последний победитель: <span id="lastWinner">...</span></p>
-        </div>
-	<!-- Добавлен блок рефералов -->
-        <div class="referral-card">
-            <h3>👥 Приведи друга = +5 билетов!</h3>
-            <p>Твоя ссылка: 
-                <span class="referral-code" onclick="copyReferralLink()" 
-                      id="referralLink">Загрузка...</span>
-            </p>
-            <p>Приглашено: <span id="referralCount">0</span> друзей</p>
         </div>
     </div>
 
     <script>
-        // Инициализация WebApp Telegram
         const webApp = Telegram.WebApp;
         webApp.ready();
         
-        // Состояние приложения
+        // Инициализация состояния
         let state = {
-            tickets: localStorage.getItem('tickets') || 0,
-            jackpot: 100,
+            tickets: parseInt(localStorage.getItem('tickets')) || 0,
+            jackpot: parseInt(localStorage.getItem('jackpot')) || 100,
             lastWinner: localStorage.getItem('lastWinner') || 'еще нет',
-            nextDraw: localStorage.getItem('nextDraw') || Date.now() + 86400000
+            nextDraw: parseInt(localStorage.getItem('nextDraw')) || Date.now() + 86400000,
+            referralCode: localStorage.getItem('referralCode') || generateReferralCode(),
+            referralCount: parseInt(localStorage.getItem('referralCount')) || 0,
+            referredBy: localStorage.getItem('referredBy') || null,
+            rewarded: localStorage.getItem('rewarded') === 'true' || false
         };
 
-        // Элементы интерфейса
-        const ticketsEl = document.getElementById('tickets');
-        const jackpotEl = document.getElementById('jackpot');
-        const lastWinnerEl = document.getElementById('lastWinner');
-        const timerEl = document.getElementById('timer');
-        
-        // Обновление интерфейса
-        function updateUI() {
-            ticketsEl.textContent = state.tickets;
-            jackpotEl.textContent = state.jackpot;
-            lastWinnerEl.textContent = state.lastWinner;
-            localStorage.setItem('tickets', state.tickets);
-            localStorage.setItem('nextDraw', state.nextDraw);
-            localStorage.setItem('lastWinner', state.lastWinner);
+        // Генерация реферального кода
+        function generateReferralCode() {
+            return Math.random().toString(36).substr(2, 6).toUpperCase();
         }
 
-        // Таймер обратного отсчета
+        // Копирование реферальной ссылки
+        function copyReferralLink() {
+            const link = `https://t.me/${webApp.initDataUnsafe.user.username}?startapp=${state.referredBy}`;
+            navigator.clipboard.writeText(link)
+                .then(() => webApp.showAlert('Ссылка скопирована!'))
+                .catch(() => webApp.showAlert('Ошибка копирования'));
+        }
+
+        // Проверка реферала при запуске
+        function checkReferral() {
+            const params = new URLSearchParams(webApp.initDataUnsafe.start_param);
+            const referrer = params.get('ref');
+            
+            if(referrer && !state.referredBy && referrer !== state.referralCode) {
+                state.referredBy = referrer;
+                localStorage.setItem('referredBy', referrer);
+                webApp.showPopup({
+                    title: '🎁 Реферал обнаружен!',
+                    message: 'Вы получите бонус после просмотра рекламы'
+                });
+            }
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            document.getElementById('tickets').textContent = state.tickets;
+            document.getElementById('jackpot').textContent = state.jackpot;
+            document.getElementById('lastWinner').textContent = state.lastWinner;
+            document.getElementById('referralLink').textContent = state.referralCode;
+            document.getElementById('referralCount').textContent = state.referralCount;
+            
+            // Сохранение состояния
+            localStorage.setItem('tickets', state.tickets);
+            localStorage.setItem('jackpot', state.jackpot);
+            localStorage.setItem('lastWinner', state.lastWinner);
+            localStorage.setItem('nextDraw', state.nextDraw);
+            localStorage.setItem('referralCode', state.referralCode);
+            localStorage.setItem('referralCount', state.referralCount);
+            localStorage.setItem('rewarded', state.rewarded);
+        }
+
+        // Таймер
         function updateTimer() {
             const now = Date.now();
             const diff = state.nextDraw - now;
@@ -147,122 +171,61 @@
             const minutes = Math.floor((diff % 3600000) / 60000);
             const seconds = Math.floor((diff % 60000) / 1000);
             
-            timerEl.textContent = 
+            document.getElementById('timer').textContent = 
                 `${String(hours).padStart(2, '0')}:` +
                 `${String(minutes).padStart(2, '0')}:` +
                 `${String(seconds).padStart(2, '0')}`;
         }
 
-        // Проведение лотереи
+        // Лотерея
         function conductLottery() {
-            // В реальности здесь должно быть обращение к серверу
-            const winner = Math.random() < 0.5 ? 'Вы!' : 'Другой игрок';
+            const winChance = state.tickets / (state.tickets + 100);
+            const winner = Math.random() < winChance ? 'Вы!' : 'Другой игрок';
             
             state.lastWinner = winner;
-            state.jackpot += 50;
+            state.jackpot += Math.floor(state.tickets * 0.1);
             state.nextDraw = Date.now() + 86400000;
             
-            if(winner === 'Вы!' && state.tickets > 0) {
+            if(winner === 'Вы!') {
                 webApp.showPopup({
                     title: '🎉 Победа!',
-                    message: `Вы выиграли ${state.jackpot} RUB!`,
-                    buttons: [{ type: 'close' }]
+                    message: `Вы выиграли ${state.jackpot} RUB!`
                 });
                 state.jackpot = 100;
             }
             
+            state.tickets = 0;
             updateUI();
         }
 
-        // Обработчик просмотра рекламы
+        // Обработчик рекламы
         document.getElementById('watchAd').addEventListener('click', () => {
             webApp.showPopup({
                 title: 'Реклама',
-                message: 'Сейчас будет показана реклама...',
-                buttons: [{ type: 'close' }]
+                message: 'Просмотр рекламы...'
             });
             
-            // Имитация просмотра рекламы
             setTimeout(() => {
                 state.tickets++;
+                
+                // Реферальная логика
+                if(state.referredBy && !state.rewarded) {
+                    state.rewarded = true;
+                    state.tickets += 5;
+                    state.referralCount++;
+                    webApp.showAlert('+5 билетов за приглашение друга!');
+                }
+                
                 updateUI();
-                webApp.showAlert('Спасибо! Вы получили 1 билет!');
+                webApp.showAlert('+1 билет получен!');
             }, 3000);
         });
 
-        // Запуск таймера
+        // Инициализация
+        checkReferral();
         setInterval(updateTimer, 1000);
         updateUI();
         updateTimer();
-
-	 // Добавлена реферальная логика
-        function generateReferralCode() {
-            return Math.random().toString(36).substr(2, 8).toUpperCase();
-        }
-
-        function copyReferralLink() {
-            const link = `https://t.me/${webApp.initDataUnsafe.user.username}?startapp=${state.referralCode}`;
-            navigator.clipboard.writeText(link)
-;
-            webApp.showAlert('Ссылка скопирована! Отправь другу 🚀');
-        }
-
-        // Обновлен state
-        let state = {
-            ...previousState,
-            referralCode: localStorage.getItem('referralCode') || generateReferralCode(),
-            referralCount: localStorage.getItem('referralCount') || 0,
-            referredBy: localStorage.getItem('referredBy') || null
-        };
-
-        // Проверка реферала при запуске
-        if(webApp.initDataUnsafe.start_param) {
-            const referrerCode = webApp.initDataUnsafe.start_param;
-            if(!state.referredBy && referrerCode !== state.referralCode) {
-                state.referredBy = referrerCode;
-                webApp.showPopup({
-                    title: '🎁 Бонус за друга!',
-                    message: 'Ты получишь +1 билет когда посмотришь первую рекламу'
-                });
-            }
-        }
-
-        // Модифицирован обработчик рекламы
-        document.getElementById('watchAd').addEventListener('click', () => {
-            setTimeout(() => {
-                state.tickets++;
-                
-                // Выдача бонуса за первое действие реферала
-                if(state.referredBy && !localStorage.getItem('rewarded')) {
-                    localStorage.setItem('rewarded', 'true');
-                    giveReferralBonus(state.referredBy, 1);
-                }
-                
-                // Выдача бонуса за активность реферала
-                if(state.tickets % 5 === 0 && state.referredBy) {
-                    giveReferralBonus(state.referredBy, 3);
-                }
-                
-                updateUI();
-            }, 3000);
-        });
-
-        // Новая функция для бонусов
-        function giveReferralBonus(referralCode, amount) {
-            // В реальности здесь запрос к серверу
-            const referrer = findUserByCode(referralCode); 
-            referrer.tickets += amount;
-            webApp.showAlert(`💎 Твой друг получил ${amount} билетов за твою активность!`);
-        }
-
-        // Обновляем UI
-        function updateUI() {
-            ...previousUIUpdates...
-            document.getElementById('referralLink').textContent = state.referralCode;
-            document.getElementById('referralCount').textContent = state.referralCount;
-            localStorage.setItem('referralCode', state.referralCode);
-            localStorage.setItem('referralCount', state.referralCount);
-        }
     </script>
 </body>
 </html>
