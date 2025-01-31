@@ -1,0 +1,15 @@
+{
+  "telegram": {
+    "botToken": "7675080386:AAF2abYPjukQ01KvWtPAjixq2_dbiULdWlk",
+    "webhookUrl": "https://lottymillion-red.vercel.app/"
+  },
+  "payments": {
+    "provider": "yookassa",
+    "shopId": "",
+    "secretKey": ""
+  },
+  "referrals": {
+    "bonusForInviter": 5,
+    "bonusForNewUser": 3
+  }
+}
