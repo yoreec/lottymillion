@@ -1,184 +1,188 @@
 <html>
 <head>
-    <title>SteamPunk Lottery</title>
+    <title>Cash Lottery Ads</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="288351"></script>    <style>
-        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Orbitron:wght@400;700&display=swap');
-
         :root {
-            --brass: #b8860b;
-            --steel: #2f4f4f;
-            --neon-blue: #00ffff;
-            --neon-orange: #ff4500;
+            --primary: #0088cc;
+            --secondary: #ff6b6b;
         }
 
         body {
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            font-family: 'Orbitron', sans-serif;
-            color: var(--brass);
+            font-family: Arial, sans-serif;
             padding: 20px;
-            position: relative;
-            overflow-x: hidden;
+            background: #f0f2f5;
         }
 
-        .gears-bg {
-            position: fixed;
-            width: 150%;
-            height: 150%;
-            opacity: 0.1;
-            z-index: -1;
-            background-image: url('data:image/svg+xml,<svg...>'); /* SVG шестерёнок */
-            animation: rotateGears 300s linear infinite;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .main-frame {
-            border: 3px solid var(--brass);
-            border-radius: 15px;
-            padding: 20px;
-            background: 
-                linear-gradient(45deg, 
-                    rgba(42, 42, 42, 0.9) 0%, 
-                    rgba(0, 0, 0, 0.9) 100%),
-                url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
-            box-shadow: 0 0 30px var(--neon-blue);
-            position: relative;
-        }
-
-        .pressure-gauge {
-            width: 120px;
-            height: 120px;
-            background: #333;
-            border-radius: 50%;
-            border: 3px solid var(--brass);
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            transform: rotate(45deg);
-            pointer-events: none;
-        }
-
-        .neo-text {
-            text-shadow: 0 0 10px var(--neon-blue),
-                       0 0 20px var(--neon-blue),
-                       0 0 30px var(--neon-blue);
-        }
-
-        .brass-button {
-            background: linear-gradient(45deg, #8b4513, #cd853f);
-            border: 2px solid var(--brass);
-            padding: 15px 30px;
-            font-size: 1.2em;
-            color: #fff;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .brass-button:hover {
-            box-shadow: 0 0 25px var(--neon-orange);
-            transform: scale(1.05);
-        }
-
-        .pipes {
-            position: absolute;
-            width: 100%;
-            height: 50px;
-            background: repeating-linear-gradient(
-                45deg,
-                var(--steel),
-                var(--steel) 10px,
-                #444 10px,
-                #444 20px
-            );
-            bottom: -20px;
-            left: 0;
-        }
-
-        @keyframes steam {
-            0% { opacity: 0; transform: translateY(0); }
-            50% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-100px); }
-        }
-
-        .steam-effect {
-            position: absolute;
-            width: 100%;
+        .ad-container {
             height: 100px;
-            pointer-events: none;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
         }
 
-        .steam-particle {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            animation: steam 3s infinite;
+        .referral-link {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
-    <div class="gears-bg"></div>
-    <div class="main-frame">
-        <div class="pressure-gauge"></div>
-        <div class="steam-effect" id="steamContainer"></div>
-        
-        <h1 class="neo-text">🛠️ STEAM PUNK LOTTERY 🎩</h1>
-        
-        <div class="brass-panel">
-            <div class="dial">
-                <span class="neo-text">🎫 TICKETS: </span>
-                <span id="tickets" class="neo-text">0</span>
-            </div>
-            
-            <div class="dial">
-                <span class="neo-text">⏳ NEXT DRAW: </span>
-                <span id="timer" class="neo-text">00:00:00</span>
-            </div>
+    <div class="container">
+        <!-- Слот для баннерной рекламы -->
+        <div class="ad-container" id="bannerAd">
+            <!-- Сюда вставляется рекламный код -->
+            Пример баннера (замените на свой)
         </div>
 
-        <button class="brass-button" id="watchAd">🔥 IGNITE BOILER (Watch Ad)</button>
-
-        <div class="referral-section">
-            <h3 class="neo-text">🔗 INVITATION PORTAL</h3>
-            <div class="brass-code" id="referralLink">
-                GENERATING STEAM SIGNATURE...
-            </div>
+        <div class="referral-link" onclick="copyReferral()" id="referralOutput">
+            Загрузка...
         </div>
 
-        <div class="pipes"></div>
+        <!-- Основной интерфейс -->
+        <div id="gameInterface"></div>
+
+        <!-- Слот для полноэкранной рекламы -->
+        <div id="fullscreenAd" style="display: none;"></div>
     </div>
 
-    <script>
-        // Steam particles animation
-        function createSteam() {
-            const container = document.getElementById('steamContainer');
-            const particle = document.createElement('div');
-            particle.className = 'steam-particle';
-            particle.style.left = Math.random() * 100 + '%';
-            container.appendChild(particle);
-            
-            setTimeout(() => {
-                particle.remove();
-            }, 3000);
+<script>
+// Конфигурация (замените значениями вашего проекта)
+const config = {
+    botUsername: 'YourBotName', // Без @
+    adProviders: {
+        banner: {
+            enabled: true,
+            html: '<!-- Ваш HTML код баннера -->'
+        },
+        video: {
+            enabled: true,
+            script: '<!-- Ваш скрипт видео-рекламы -->'
         }
+    }
+};
 
-        setInterval(createSteam, 500);
+// Инициализация приложения
+const webApp = Telegram.WebApp;
+let state = {};
 
-        // Остальная логика приложения аналогична предыдущей версии
-        // (рефералы, таймеры, обработчики событий)
-        // Добавлены только визуальные улучшения
-        
-        // Пример инициализации
-        const webApp = Telegram.WebApp;
-        webApp.ready();
-        
-        // ... (остальной код из предыдущего ответа)
-    </script>
+function init() {
+    webApp.ready();
+    loadState();
+    setupAds();
+    renderUI();
+    checkReferral();
+}
+
+function loadState() {
+    state = {
+        tickets: localStorage.tickets || 0,
+        referrals: localStorage.referrals || 0,
+        referralCode: localStorage.referralCode || generateCode(),
+        ...webApp.initDataUnsafe.user
+    };
+}
+
+function generateCode() {
+    return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+// Рендер интерфейса
+function renderUI() {
+    const interfaceHTML = `
+        <div class="balance-card">
+            <h3>🎫 Билеты: ${state.tickets}</h3>
+            <p>👥 Приглашено: ${state.referrals}</p>
+        </div>
+        <button class="button" onclick="showAd()">
+            📺 Смотреть рекламу (+1 билет)
+        </button>
+    `;
+    document.getElementById('gameInterface').innerHTML = interfaceHTML;
+    document.getElementById('referralOutput').textContent = 
+        `https://t.me/${config.botUsername}?start=${state.referralCode}`;
+}
+
+// Рекламная интеграция
+function setupAds() {
+    if(config.adProviders.banner.enabled) {
+        document.getElementById('bannerAd').innerHTML = 
+            config.adProviders.banner.html;
+    }
+}
+
+function showAd() {
+    // Показать полноэкранную рекламу
+    document.getElementById('fullscreenAd').style.display = 'block';
+    document.getElementById('fullscreenAd').innerHTML = 
+        config.adProviders.video.script;
+
+    // Имитация завершения просмотра
+    setTimeout(() => {
+        onAdComplete();
+    }, 30000); // Замените на коллбек вашего рекламного SDK
+}
+
+function onAdComplete() {
+    state.tickets++;
+    if(state.referredBy) handleReferral();
+    saveState();
+    renderUI();
+    webApp.showAlert('+1 билет!');
+    document.getElementById('fullscreenAd').style.display = 'none';
+}
+
+// Реферальная система
+function copyReferral() {
+    navigator.clipboard.writeText(
+        `https://t.me/${config.botUsername}?start=${state.referralCode}`
+    );
+    webApp.showAlert('Ссылка скопирована!');
+}
+
+function checkReferral() {
+    const params = new URLSearchParams(webApp.initDataUnsafe.start_param);
+    const referrer = params.get('start');
+    
+    if(referrer && referrer !== state.referralCode) {
+        state.referredBy = referrer;
+        webApp.showPopup({
+            title: '🎉 Реферал принят!',
+            message: 'Получите бонус после просмотра рекламы'
+        });
+    }
+}
+
+function handleReferral() {
+    // Здесь должен быть запрос к серверу для начисления бонусов
+    state.referrals++;
+    webApp.showAlert('Ваш друг получил +1 билет!');
+    saveState();
+}
+
+function saveState() {
+    localStorage.setItem('tickets', state.tickets);
+    localStorage.setItem('referrals', state.referrals);
+    localStorage.setItem('referralCode', state.referralCode);
+}
+
+// Запуск приложения
+init();
+</script>
 </body>
 </html>
