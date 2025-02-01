@@ -1,188 +1,86 @@
-<html>
+<html lang="ru">
 <head>
-    <title>Cash Lottery Ads</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="288351"></script>    <style>
-        :root {
-            --primary: #0088cc;
-            --secondary: #ff6b6b;
-        }
-
+    <title>Steampunk Лотерея</title>
+    <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background: #f0f2f5;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .ad-container {
-            height: 100px;
-            margin: 15px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border-radius: 12px;
-        }
-
-        .referral-link {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
+            background: url('https://i.imgur.com/JlqZVBG.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Courier New', monospace;
+            color: #ffcc00;
             text-align: center;
-            margin: 15px 0;
-            word-break: break-all;
+        }
+        .steampunk-container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border: 5px solid #b87333;
+            border-radius: 15px;
+            display: inline-block;
+            margin-top: 50px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px black;
+        }
+        .btn {
+            background: #b87333;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .message {
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Слот для баннерной рекламы -->
-        <div class="ad-container" id="bannerAd">
-            <!-- Сюда вставляется рекламный код -->
-            Пример баннера (замените на свой)
+    <div id="app">
+        <div class="steampunk-container">
+            <h1 class="title">☢ Steampunk Лотерея ☢</h1>
+            <p>Ваши билеты: <strong id="tickets">0</strong></p>
+            <button onclick="watchAd()" class="btn">Смотреть рекламу 🎥</button>
+            <button onclick="inviteFriend()" class="btn">Пригласить друга 🤝</button>
+            <button onclick="drawLottery()" class="btn">Розыгрыш! 🎰</button>
+            <p id="message" class="message"></p>
         </div>
-
-        <div class="referral-link" onclick="copyReferral()" id="referralOutput">
-            Загрузка...
-        </div>
-
-        <!-- Основной интерфейс -->
-        <div id="gameInterface"></div>
-
-        <!-- Слот для полноэкранной рекламы -->
-        <div id="fullscreenAd" style="display: none;"></div>
     </div>
 
-<script>
-// Конфигурация (замените значениями вашего проекта)
-const config = {
-    botUsername: 'YourBotName', // Без @
-    adProviders: {
-        banner: {
-            enabled: true,
-            html: '<!-- Ваш HTML код баннера -->'
-        },
-        video: {
-            enabled: true,
-            script: '<!-- Ваш скрипт видео-рекламы -->'
+    <script>
+        let userId = "user_" + Math.floor(Math.random() * 1000000);
+        let tickets = 0;
+
+        function watchAd() {
+            setTimeout(() => {
+                tickets++;
+                document.getElementById("tickets").innerText = tickets;
+                document.getElementById("message").innerText = "Вы получили 1 билет! 🎟";
+            }, 2000);
         }
-    }
-};
 
-// Инициализация приложения
-const webApp = Telegram.WebApp;
-let state = {};
+        function inviteFriend() {
+            let refLink = `https://t.me/YourBot?start=ref_${userId}`;
+            navigator.clipboard.writeText(refLink);
+            document.getElementById("message").innerText = "Ссылка скопирована! Отправьте её другу. 🎩";
+        }
 
-function init() {
-    webApp.ready();
-    loadState();
-    setupAds();
-    renderUI();
-    checkReferral();
-}
-
-function loadState() {
-    state = {
-        tickets: localStorage.tickets || 0,
-        referrals: localStorage.referrals || 0,
-        referralCode: localStorage.referralCode || generateCode(),
-        ...webApp.initDataUnsafe.user
-    };
-}
-
-function generateCode() {
-    return Math.random().toString(36).slice(2, 8).toUpperCase();
-}
-
-// Рендер интерфейса
-function renderUI() {
-    const interfaceHTML = `
-        <div class="balance-card">
-            <h3>🎫 Билеты: ${state.tickets}</h3>
-            <p>👥 Приглашено: ${state.referrals}</p>
-        </div>
-        <button class="button" onclick="showAd()">
-            📺 Смотреть рекламу (+1 билет)
-        </button>
-    `;
-    document.getElementById('gameInterface').innerHTML = interfaceHTML;
-    document.getElementById('referralOutput').textContent = 
-        `https://t.me/${config.botUsername}?start=${state.referralCode}`;
-}
-
-// Рекламная интеграция
-function setupAds() {
-    if(config.adProviders.banner.enabled) {
-        document.getElementById('bannerAd').innerHTML = 
-            config.adProviders.banner.html;
-    }
-}
-
-function showAd() {
-    // Показать полноэкранную рекламу
-    document.getElementById('fullscreenAd').style.display = 'block';
-    document.getElementById('fullscreenAd').innerHTML = 
-        config.adProviders.video.script;
-
-    // Имитация завершения просмотра
-    setTimeout(() => {
-        onAdComplete();
-    }, 30000); // Замените на коллбек вашего рекламного SDK
-}
-
-function onAdComplete() {
-    state.tickets++;
-    if(state.referredBy) handleReferral();
-    saveState();
-    renderUI();
-    webApp.showAlert('+1 билет!');
-    document.getElementById('fullscreenAd').style.display = 'none';
-}
-
-// Реферальная система
-function copyReferral() {
-    navigator.clipboard.writeText(
-        `https://t.me/${config.botUsername}?start=${state.referralCode}`
-    );
-    webApp.showAlert('Ссылка скопирована!');
-}
-
-function checkReferral() {
-    const params = new URLSearchParams(webApp.initDataUnsafe.start_param);
-    const referrer = params.get('start');
-    
-    if(referrer && referrer !== state.referralCode) {
-        state.referredBy = referrer;
-        webApp.showPopup({
-            title: '🎉 Реферал принят!',
-            message: 'Получите бонус после просмотра рекламы'
-        });
-    }
-}
-
-function handleReferral() {
-    // Здесь должен быть запрос к серверу для начисления бонусов
-    state.referrals++;
-    webApp.showAlert('Ваш друг получил +1 билет!');
-    saveState();
-}
-
-function saveState() {
-    localStorage.setItem('tickets', state.tickets);
-    localStorage.setItem('referrals', state.referrals);
-    localStorage.setItem('referralCode', state.referralCode);
-}
-
-// Запуск приложения
-init();
-</script>
+        function drawLottery() {
+            fetch("https://yourserver.com/draw-lottery")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.winner) {
+                        document.getElementById("message").innerText = `🎉 Победитель: ${data.winner} (Билеты: ${data.tickets})`;
+                    } else {
+                        document.getElementById("message").innerText = "Нет участников 😢";
+                    }
+                });
+        }
+    </script>
 </body>
 </html>
+
