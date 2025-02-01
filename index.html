@@ -1,109 +1,301 @@
-<html lang="ru">
+<html>
 <head>
+    <title>SteamPunk Lottery Machine</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LottyMillin - Стимпанк Лотерея</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap');
+        :root {
+            --brass: #cd950c;
+            --steel: #363636;
+            --neon: #00ff9d;
+            --glass: rgba(0, 255, 157, 0.1);
+        }
 
         body {
-            background: url('https://i.imgur.com/VnOMQZf.jpg') no-repeat center center fixed;
-            background-size: cover;
-            font-family: 'Uncial Antiqua', cursive;
-            color: #ffcc00;
-            text-align: center;
+            background: 
+                radial-gradient(circle at center, #1a1a1a 0%, #000 100%),
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    var(--brass) 10px,
+                    var(--brass) 20px
+                );
+            font-family: 'Courier New', monospace;
+            color: var(--neon);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .container {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 30px;
-            border: 8px solid #b87333;
+        .main-panel {
+            background: 
+                linear-gradient(160deg, #2a2a2a 0%, #1a1a1a 100%),
+                url('data:image/png;base64,iVBORw0KGgo...');
+            border: 3px solid var(--brass);
             border-radius: 15px;
-            display: inline-block;
-            margin-top: 50px;
-            box-shadow: 0 0 15px rgba(255, 200, 100, 0.7);
+            padding: 30px;
+            box-shadow: 0 0 40px var(--glass);
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .title {
-            font-size: 28px;
-            font-weight: bold;
-            text-shadow: 2px 2px 10px black;
+        .gauge {
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--brass);
+            border-radius: 50%;
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            background: conic-gradient(
+                var(--neon) 0% 30%,
+                transparent 30% 100%
+            );
+            transform: rotate(-135deg);
+            animation: gauge-pulse 2s infinite;
         }
 
-        .ticket-count {
-            font-size: 20px;
-            color: #ffdd44;
+        .display {
+            background: #000;
+            border: 2px solid var(--brass);
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            position: relative;
         }
 
-        .btn {
-            background: linear-gradient(to bottom, #b87333, #8c5a2b);
-            color: white;
-            border: 3px solid #5a3e1b;
-            padding: 12px 20px;
-            margin: 10px;
+        .display::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 255, 157, 0.05) 50%
+            );
+            pointer-events: none;
+        }
+
+        .button {
+            background: var(--steel);
+            border: 2px solid var(--brass);
+            color: var(--neon);
+            padding: 15px;
+            width: 100%;
+            font-size: 1.2em;
             cursor: pointer;
-            font-size: 18px;
-            border-radius: 8px;
-            transition: all 0.2s ease-in-out;
-            text-shadow: 1px 1px 3px black;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            position: relative;
         }
 
-        .btn:hover {
-            background: #d88c44;
-            transform: scale(1.1);
-            box-shadow: 0 0 10px #ffbb55;
+        .button:hover {
+            box-shadow: 0 0 25px var(--glass);
+            letter-spacing: 3px;
         }
 
-        .message {
-            font-size: 16px;
-            margin-top: 15px;
-            color: #ffd700;
+        .referral-box {
+            border: 1px solid var(--brass);
+            padding: 15px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .referral-box::before {
+            content: 'INVITATION TRANSMITTER';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #1a1a1a;
+            padding: 0 5px;
+            font-size: 0.8em;
+        }
+
+        @keyframes gauge-pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .steam {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(
+                circle at 50% 100%,
+                rgba(0, 255, 157, 0.1) 0%,
+                transparent 50%
+            );
+            animation: steam-flow 10s infinite;
+        }
+
+        @keyframes steam-flow {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">☢ LottyMillin - Стимпанк Лотерея ☢</h1>
-        <p class="ticket-count">Ваши билеты: <strong id="tickets">0</strong></p>
-        <button onclick="watchAd()" class="btn">Смотреть рекламу 🎥</button>
-        <button onclick="inviteFriend()" class="btn">Пригласить друга 🤝</button>
-        <button onclick="drawLottery()" class="btn">Розыгрыш! 🎰</button>
-        <p id="message" class="message"></p>
+    <div class="steam"></div>
+    <div class="main-panel">
+        <div class="gauge"></div>
+        
+        <div class="display">
+            <h1>STEAM PUNK LOTTERY</h1>
+            <div>TICKETS: <span id="tickets">0</span></div>
+            <div>NEXT DROP: <span id="timer">00:00:00</span></div>
+        </div>
+
+        <button class="button" id="watchAd">ENGAGE BOILER (WATCH AD)</button>
+
+        <div class="referral-box">
+            <div>INVITE CODE:</div>
+            <div id="referralCode" onclick="copyReferral()">GENERATING...</div>
+            <div>INVITED: <span id="invitedCount">0</span></div>
+        </div>
+
+        <div class="display">
+            <div>JACKPOT: <span id="jackpot">100</span> RUB</div>
+            <div>LAST WINNER: <span id="lastWinner">-</span></div>
+        </div>
     </div>
 
-    <script>
-        let userId = localStorage.getItem("lotty_user_id") || ("user_" + Math.floor(Math.random() * 1000000));
-        localStorage.setItem("lotty_user_id", userId);
-        let tickets = parseInt(localStorage.getItem("lotty_tickets")) || 0;
-        document.getElementById("tickets").innerText = tickets;
+<script>
+// Конфигурация
+const config = {
+    adProviders: {
+        banner: '<!-- Ваш рекламный код -->',
+        video: '<!-- Видео реклама -->'
+    },
+    referralBonus: {
+        inviter: 3,
+        invited: 2
+    }
+};
 
-        function watchAd() {
-            document.getElementById("message").innerText = "Просмотр рекламы...";
-            setTimeout(() => {
-                tickets++;
-                localStorage.setItem("lotty_tickets", tickets);
-                document.getElementById("tickets").innerText = tickets;
-                document.getElementById("message").innerText = "🎟 Вы получили 1 билет!";
-            }, 2000);
-        }
+// Инициализация Telegram
+const webApp = Telegram.WebApp;
+webApp.ready();
 
-        function inviteFriend() {
-            let refLink = `https://t.me/LottyMillin?start=ref_${userId}`;
-            navigator.clipboard.writeText(refLink);
-            document.getElementById("message").innerText = "🔗 Ссылка скопирована! Пригласите друга!";
-        }
+// Состояние приложения
+let state = {
+    tickets: Number(localStorage.getItem('tickets')) || 0,
+    jackpot: Number(localStorage.getItem('jackpot')) || 100,
+    referralCode: localStorage.getItem('referralCode') || generateCode(),
+    invited: Number(localStorage.getItem('invited')) || 0,
+    lastWinner: localStorage.getItem('lastWinner') || 'None',
+    nextDraw: Number(localStorage.getItem('nextDraw')) || Date.now() + 86400000
+};
 
-        function drawLottery() {
-            fetch("https://yourserver.com/draw-lottery?user_id=" + userId)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.winner) {
-                        document.getElementById("message").innerText = `🎉 Победитель: ${data.winner} (Билеты: ${data.tickets})`;
-                    } else {
-                        document.getElementById("message").innerText = "❌ Пока нет участников!";
-                    }
-                });
-        }
-    </script>
+// Генерация реферального кода
+function generateCode() {
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+    localStorage.setItem('referralCode', code);
+    return code;
+}
+
+// Обновление интерфейса
+function updateUI() {
+    document.getElementById('tickets').textContent = state.tickets;
+    document.getElementById('jackpot').textContent = state.jackpot;
+    document.getElementById('lastWinner').textContent = state.lastWinner;
+    document.getElementById('referralCode').textContent = state.referralCode;
+    document.getElementById('invitedCount').textContent = state.invited;
+    
+    // Сохранение состояния
+    localStorage.setItem('tickets', state.tickets);
+    localStorage.setItem('jackpot', state.jackpot);
+    localStorage.setItem('invited', state.invited);
+    localStorage.setItem('nextDraw', state.nextDraw);
+}
+
+// Таймер
+function updateTimer() {
+    const diff = state.nextDraw - Date.now();
+    if(diff <= 0) conductLottery();
+    
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    
+    document.getElementById('timer').textContent = 
+        `${hours.toString().padStart(2, '0')}:` +
+        `${minutes.toString().padStart(2, '0')}:` +
+        `${seconds.toString().padStart(2, '0')}`;
+}
+
+// Лотерея
+function conductLottery() {
+    const winner = Math.random() < 0.15 ? 'YOU!' : generateWinnerName();
+    state.lastWinner = winner;
+    state.jackpot += 50;
+    state.nextDraw = Date.now() + 86400000;
+    
+    if(winner === 'YOU!') {
+        webApp.showPopup({
+            title: 'VICTORY!',
+            message: `You won ${state.jackpot}RUB!`,
+            buttons: [{ type: 'close' }]
+        });
+        state.jackpot = 100;
+    }
+    
+    updateUI();
+}
+
+// Реферальная система
+function checkReferral() {
+    const startParam = webApp.initDataUnsafe.start_param;
+    if(startParam && startParam !== state.referralCode) {
+        webApp.showPopup({
+            title: 'REFERRAL DETECTED',
+            message: 'Bonus activated after first ad watch!'
+        });
+        state.invited++;
+        localStorage.setItem('invited', state.invited);
+    }
+}
+
+function copyReferral() {
+    const link = `https://t.me/${webApp.initDataUnsafe.user?.username || 'your_bot'}?start=${state.referralCode}`;
+    navigator.clipboard.writeText(link);
+    webApp.showAlert('Link copied to clipboard!');
+}
+
+// Рекламная интеграция
+document.getElementById('watchAd').addEventListener('click', () => {
+    // Показать рекламу
+    document.body.innerHTML += config.adProviders.video;
+    
+    // Имитация завершения просмотра
+    setTimeout(() => {
+        state.tickets += 1;
+        checkReferral();
+        updateUI();
+        webApp.showAlert('Boiler charged! +1 Ticket');
+    }, 30000);
+});
+
+// Инициализация
+checkReferral();
+setInterval(updateTimer, 1000);
+updateUI();
+updateTimer();
+
+// Вспомогательные функции
+function generateWinnerName() {
+    const names = ['@steam_lord', '@gear_master', '@clockwork_knight'];
+    return names[Math.floor(Math.random() * names.length)];
+}
+</script>
 </body>
 </html>
